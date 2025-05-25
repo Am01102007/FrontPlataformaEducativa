@@ -1,0 +1,16 @@
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#4dd0e1] to-white p-4">
+  <div class="w-full max-w-md">
+    <!-- Logo -->
+    <div class="flex justify-center mb-8">
+      <div class="bg-white p-4 rounded-full shadow-md">
+        <img [src]="logoUrl" alt="Red Social de Aprendizaje Colaborativo" class="h-16 w-16">
+      </div>
+    </div>
+    
+    <!-- Contenedor principal -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <!-- Contenido dinámico (login o registro) -->
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
