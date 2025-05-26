@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
+import AuthService, { LoginCredentials } from "@/Services/authService"
 
 interface LoginComponentProps {
   onLogin: (userData: any) => void
@@ -11,24 +11,39 @@ interface LoginComponentProps {
 }
 
 export function LoginComponent({ onLogin, onSwitchToRegister }: LoginComponentProps) {
-  const [formData, setFormData] = useState({ email: "", password: "" })
+  const [formData, setFormData] = useState<LoginCredentials>({ 
+    username: "", 
+    password: "" 
+  })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setErrors({})
 
-    setTimeout(() => {
-      setIsLoading(false)
-      onLogin({
-        id: "1",
-        fullName: "Juan Pérez",
-        email: formData.email,
-        role: formData.email.includes("admin") ? "moderador" : "estudiante",
+    try {
+      const response = await AuthService.login(formData)
+      
+      // Crear objeto de usuario compatible con el frontend existente
+      const userData = {
+        id: "temp-id", // Temporal hasta obtener datos completos del usuario
+        fullName: response.username, // Usar username temporalmente
+        email: "", // Se obtendrá después
+        role: response.role === 'STUDENT' ? 'estudiante' : 'moderador',
+        username: response.username
+      }
+      
+      onLogin(userData)
+    } catch (error) {
+      setErrors({ 
+        general: error instanceof Error ? error.message : 'Error al iniciar sesión' 
       })
-    }, 1500)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -37,15 +52,15 @@ export function LoginComponent({ onLogin, onSwitchToRegister }: LoginComponentPr
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Correo electrónico</label>
+          <label className="block text-sm font-medium text-gray-700">Nombre de usuario</label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               className="pl-10 w-full py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4dd0e1] focus:border-[#4dd0e1]"
-              placeholder="tu@email.com"
+              placeholder="tu_usuario"
               required
             />
           </div>
@@ -72,6 +87,12 @@ export function LoginComponent({ onLogin, onSwitchToRegister }: LoginComponentPr
             </button>
           </div>
         </div>
+
+        {errors.general && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <span className="block sm:inline">{errors.general}</span>
+          </div>
+        )}
 
         <button
           type="submit"

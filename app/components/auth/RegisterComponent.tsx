@@ -1,36 +1,58 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Eye, EyeOff, Mail, Lock, User, Loader2, CheckCircle } from "lucide-react"
+import AuthService, { RegisterData } from "@/Services/authService"
 
 interface RegisterComponentProps {
   onSwitchToLogin: () => void
 }
 
 export function RegisterComponent({ onSwitchToLogin }: RegisterComponentProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterData>({
+    username: "",
     fullName: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    role: "STUDENT", // Por defecto estudiante
+    academicInterests: [],
+    fieldOfStudy: "",
+    educationLevel: "",
+    bio: ""
   })
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [successMessage, setSuccessMessage] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setErrors({})
 
-    setTimeout(() => {
+    // Validar contraseñas
+    if (formData.password !== confirmPassword) {
+      setErrors({ confirmPassword: "Las contraseñas no coinciden" })
       setIsLoading(false)
+      return
+    }
+
+    try {
+      await AuthService.register(formData)
       setSuccessMessage("¡Registro exitoso! Redirigiendo al inicio de sesión...")
+      
       setTimeout(() => {
         onSwitchToLogin()
       }, 2000)
-    }, 1500)
+    } catch (error) {
+      setErrors({ 
+        general: error instanceof Error ? error.message : 'Error en el registro' 
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -38,6 +60,21 @@ export function RegisterComponent({ onSwitchToLogin }: RegisterComponentProps) {
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Crear Cuenta</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Nombre de usuario</label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              className="pl-10 w-full py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4dd0e1] focus:border-[#4dd0e1]"
+              placeholder="tu_usuario"
+              required
+            />
+          </div>
+        </div>
+
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">Nombre completo</label>
           <div className="relative">
@@ -69,6 +106,34 @@ export function RegisterComponent({ onSwitchToLogin }: RegisterComponentProps) {
         </div>
 
         <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Campo de estudio</label>
+          <input
+            type="text"
+            value={formData.fieldOfStudy || ""}
+            onChange={(e) => setFormData({ ...formData, fieldOfStudy: e.target.value })}
+            className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4dd0e1] focus:border-[#4dd0e1]"
+            placeholder="Ingeniería de Sistemas"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Nivel educativo</label>
+          <select
+            value={formData.educationLevel || ""}
+            onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })}
+            className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4dd0e1] focus:border-[#4dd0e1]"
+            required
+          >
+            <option value="">Seleccionar nivel</option>
+            <option value="Pregrado">Pregrado</option>
+            <option value="Posgrado">Posgrado</option>
+            <option value="Maestría">Maestría</option>
+            <option value="Doctorado">Doctorado</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">Contraseña</label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -96,14 +161,23 @@ export function RegisterComponent({ onSwitchToLogin }: RegisterComponentProps) {
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="password"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="pl-10 w-full py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4dd0e1] focus:border-[#4dd0e1]"
               placeholder="••••••••"
               required
             />
           </div>
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+          )}
         </div>
+
+        {errors.general && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <span className="block sm:inline">{errors.general}</span>
+          </div>
+        )}
 
         {successMessage && (
           <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded flex items-center">
