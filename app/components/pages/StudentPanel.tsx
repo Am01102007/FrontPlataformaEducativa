@@ -17,7 +17,8 @@ export function StudentPanel({ user }: StudentPanelProps) {
     contentType: "DOCUMENT",
     contentUrl: "",
     description: "",
-    tags: []
+    tags: [],
+    authorUsername: ""
   })
 
   // Estado separado para el input de tags como string
@@ -106,7 +107,8 @@ export function StudentPanel({ user }: StudentPanelProps) {
         contentType: "DOCUMENT",
         contentUrl: "",
         description: "",
-        tags: []
+        tags: [],
+        authorUsername: ""
       })
       setTagsInput("") // Resetear también el input de tags
       

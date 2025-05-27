@@ -51,7 +51,7 @@ export class HelpRequestService {
   // Crear nueva solicitud de ayuda
   static async createHelpRequest(requestData: CreateHelpRequestData): Promise<HelpRequest> {
     try {
-      const response = await apiClient.post('/help-requests', requestData);
+      const response = await apiClient.post('/api/v1/help-requests', requestData);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al crear solicitud de ayuda');

@@ -7,7 +7,9 @@ export interface Content {
   id: string;
   title: string;
   description: string;
+  content?: string; // Agregar campo content que usa el backend
   contentUrl?: string;
+  resourceUrl?: string; // Campo que usa el backend
   contentType: ContentType;
   tags: string[];
   authorId: string;
@@ -22,9 +24,12 @@ export interface Content {
 export interface CreateContentData {
   title: string;
   description: string;
+  content?: string; // Campo para el contenido textual
   contentUrl?: string;
+  resourceUrl?: string; // Campo del backend
   contentType: ContentType;
   tags: string[];
+  authorUsername: string; // Requerido por el backend
 }
 
 export interface RateContentData {
@@ -46,16 +51,17 @@ export class ContentService {
   // Obtener todos los contenidos con paginación
   static async getAllContents(page: number = 0, size: number = 10): Promise<PagedResponse<Content>> {
     try {
-      const response = await apiClient.get(`/contents?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/api/v1/contents?page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
-    throw new Error((error as Error).message || 'Error al obtener contenidos');    }
+      throw new Error((error as Error).message || 'Error al obtener contenidos');    
+    }
   }
 
   // Obtener contenido por ID
   static async getContentById(id: string): Promise<Content> {
     try {
-      const response = await apiClient.get(`/contents/${id}`);
+      const response = await apiClient.get(`/api/v1/contents/${id}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener contenido');
@@ -65,17 +71,18 @@ export class ContentService {
   // Crear nuevo contenido
   static async createContent(contentData: CreateContentData): Promise<Content> {
     try {
-      const response = await apiClient.post('/contents', contentData);
+      console.log('📝 Sending content data:', contentData);
+      const response = await apiClient.post('/api/v1/contents', contentData);
       return response.data;
     } catch (error) {
-     throw new Error((error as Error).message || 'Error al crear contenido');
+      throw new Error((error as Error).message || 'Error al crear contenido');
     }
   }
 
   // Actualizar contenido
   static async updateContent(id: string, contentData: CreateContentData): Promise<Content> {
     try {
-      const response = await apiClient.put(`/contents/${id}`, contentData);
+      const response = await apiClient.put(`/api/v1/contents/${id}`, contentData);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al actualizar contenido');
@@ -85,7 +92,7 @@ export class ContentService {
   // Eliminar contenido
   static async deleteContent(id: string): Promise<void> {
     try {
-      await apiClient.delete(`/contents/${id}`);
+      await apiClient.delete(`/api/v1/contents/${id}`);
     } catch (error) {
       throw new Error((error as Error).message || 'Error al eliminar contenido');
     }
@@ -94,17 +101,17 @@ export class ContentService {
   // Calificar contenido
   static async rateContent(id: string, ratingData: RateContentData): Promise<Content> {
     try {
-      const response = await apiClient.post(`/contents/${id}/rate`, ratingData);
+      const response = await apiClient.post(`/api/v1/contents/${id}/rate`, ratingData);
       return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al cali8ficar contenido');
+      throw new Error((error as Error).message || 'Error al calificar contenido');
     }
   }
 
   // Obtener contenidos por autor
   static async getContentsByAuthor(authorId: string, page: number = 0, size: number = 10): Promise<PagedResponse<Content>> {
     try {
-      const response = await apiClient.get(`/contents/author/${authorId}?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/api/v1/contents/author/${authorId}?page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener contenido');
@@ -114,7 +121,7 @@ export class ContentService {
   // Buscar contenidos por palabra clave
   static async searchContentsByKeyword(keyword: string, page: number = 0, size: number = 10): Promise<PagedResponse<Content>> {
     try {
-      const response = await apiClient.get(`/contents/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${size}`);
+      const response = await apiClient.get(`/api/v1/contents/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al buscar contenido');
@@ -124,7 +131,7 @@ export class ContentService {
   // Obtener contenidos por etiqueta
   static async getContentsByTag(tag: string, page: number = 0, size: number = 10): Promise<PagedResponse<Content>> {
     try {
-      const response = await apiClient.get(`/contents/tag/${encodeURIComponent(tag)}?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/api/v1/contents/tag/${encodeURIComponent(tag)}?page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener contenidos por etiqueta');
@@ -134,7 +141,7 @@ export class ContentService {
   // Obtener contenidos mejor calificados
   static async getTopRatedContents(page: number = 0, size: number = 10): Promise<PagedResponse<Content>> {
     try {
-      const response = await apiClient.get(`/contents/top-rated?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/api/v1/contents/top-rated?page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener contenidos mejor calificados');
@@ -144,7 +151,7 @@ export class ContentService {
   // Obtener contenidos más vistos
   static async getMostViewedContents(page: number = 0, size: number = 10): Promise<PagedResponse<Content>> {
     try {
-      const response = await apiClient.get(`/contents/most-viewed?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/api/v1/contents/most-viewed?page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener contenidos más vistos');
@@ -154,7 +161,7 @@ export class ContentService {
   // Obtener contenidos recientes
   static async getRecentContents(page: number = 0, size: number = 10): Promise<PagedResponse<Content>> {
     try {
-      const response = await apiClient.get(`/contents/recent?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/api/v1/contents/recent?page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener contenidos recientes');
@@ -164,7 +171,7 @@ export class ContentService {
   // Obtener contenidos de miembros del grupo de estudio
   static async getContentsByStudyGroupMembers(studentId: string, page: number = 0, size: number = 10): Promise<PagedResponse<Content>> {
     try {
-      const response = await apiClient.get(`/contents/study-group-members/${studentId}?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/api/v1/contents/study-group-members/${studentId}?page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener contenidos de compañeros de grupo');
@@ -174,7 +181,7 @@ export class ContentService {
   // Obtener recomendaciones de contenido
   static async getContentRecommendations(studentId: string, page: number = 0, size: number = 10): Promise<PagedResponse<Content>> {
     try {
-      const response = await apiClient.get(`/contents/recommendations/${studentId}?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/api/v1/contents/recommendations/${studentId}?page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener recomendaciones');
@@ -184,7 +191,7 @@ export class ContentService {
   // Buscar contenidos por título
   static async searchContentsByTitle(title: string): Promise<Content[]> {
     try {
-      const response = await apiClient.get(`/contents/title-search/${encodeURIComponent(title)}`);
+      const response = await apiClient.get(`/api/v1/contents/title-search/${encodeURIComponent(title)}`);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al buscar por título');
