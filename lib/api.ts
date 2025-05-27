@@ -1,6 +1,18 @@
 // lib/api.ts
 import axios, { AxiosResponse, AxiosError } from 'axios';
 
+// Interfaces para manejo de errores
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+  details?: string;
+  status?: number;
+}
+
+interface CustomAxiosError extends AxiosError {
+  response?: AxiosResponse<ApiErrorResponse>;
+}
+
 // Configuración base de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -32,26 +44,31 @@ apiClient.interceptors.request.use(
 // Interceptor para manejar respuestas y errores
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    // Retornar la respuesta completa, no solo data
     return response;
   },
-  (error: AxiosError) => {
+  (error: CustomAxiosError) => {
     // Manejo de errores mejorado
     if (error.response?.status === 401) {
       // Token expirado o inválido
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_data');
-        // Usar router de Next.js en lugar de window.location
         window.location.href = '/';
       }
     }
     
-    // Estructura de error consistente
-    const errorMessage = error.response?.data?.message || 
-                        error.response?.data || 
-                        error.message || 
-                        'Error desconocido';
+    // Extraer mensaje de error con tipado seguro
+    const errorData = error.response?.data;
+    let errorMessage = 'Error desconocido';
+    
+    if (errorData) {
+      errorMessage = errorData.message || 
+                    errorData.error || 
+                    errorData.details || 
+                    (typeof errorData === 'string' ? errorData : JSON.stringify(errorData));
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
     
     return Promise.reject(new Error(errorMessage));
   }
