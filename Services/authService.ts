@@ -61,15 +61,15 @@ export class AuthService {
       const response = await apiClient.post('/auth/login', credentials);
       
       // Guardar token y datos del usuario
-      if (response.token) {
-        localStorage.setItem(this.TOKEN_KEY, response.token);
+      if (response.data.token) {
+        localStorage.setItem(this.TOKEN_KEY, response.data.token);
         localStorage.setItem(this.USER_KEY, JSON.stringify({
-          username: response.username,
-          role: response.role
+          username: response.data.username,
+          role: response.data.role
         }));
       }
       
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error en el inicio de sesión');
     }
@@ -79,7 +79,7 @@ export class AuthService {
   static async register(userData: RegisterData): Promise<AuthResponse> {
     try {
       const response = await apiClient.post('/auth/register', userData);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error en el registro');
     }

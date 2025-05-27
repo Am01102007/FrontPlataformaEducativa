@@ -1,25 +1,27 @@
-// services/moderatorService.ts
+// services/studentService.ts
 import apiClient from '@/lib/api';
-import { User } from './authService';
+import { User } from '@/services/authService'; 
 
-export interface Moderator extends User {
-  department: string;
-  specialization: string;
-  accessLevel: number;
-  contactInfo?: string;
+export interface Student extends User {
+  academicInterests: string[];
+  fieldOfStudy: string;
+  educationLevel: string;
+  bio?: string;
+  connectionCount: number;
 }
 
-export interface UpdateModeratorData {
+export interface UpdateStudentData {
   username?: string;
   email?: string;
   fullName?: string;
-  department?: string;
-  specialization?: string;
-  accessLevel?: number;
-  contactInfo?: string;
+  academicInterests?: string[];
+  fieldOfStudy?: string;
+  educationLevel?: string;
+  bio?: string;
 }
 
-export interface ConnectionAnalytics {
+export interface StudentConnection {
+  id: string;
   studentA: string;
   studentB: string;
   strength: number;
@@ -27,168 +29,192 @@ export interface ConnectionAnalytics {
   lastInteraction: string;
 }
 
-export interface PathAnalytics {
-  path: any[];
-  distance: number;
-  found: boolean;
+export interface CreateConnectionData {
+  studentIdA: string;
+  studentIdB: string;
+  commonInterests: string[];
 }
 
-export interface StudentStats {
-  id: string;
-  username: string;
-  fullName: string;
-  connectionCount: number;
+export interface UpdateConnectionData {
+  studentIdA: string;
+  studentIdB: string;
+  strengthChange: number;
 }
 
-export interface Community {
-  id: string;
-  username: string;
-  fullName: string;
-}
-
-export class ModeratorService {
-  // Obtener todos los moderadores
-  static async getAllModerators(): Promise<Moderator[]> {
+export class StudentService {
+  // Obtener todos los estudiantes (solo moderadores)
+  static async getAllStudents(): Promise<Student[]> {
     try {
-      const response = await apiClient.get('/moderators');
-      return response;
+      const response = await apiClient.get('/students');
+      return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al obtener moderadores');
+      throw new Error((error as Error).message || 'Error al obtener estudiantes');
     }
   }
 
-  // Obtener moderador por ID
-  static async getModeratorById(id: string): Promise<Moderator> {
+  // Obtener estudiante por ID
+  static async getStudentById(id: string): Promise<Student> {
     try {
-      const response = await apiClient.get(`/moderators/${id}`);
-      return response;
+      const response = await apiClient.get(`/students/${id}`);
+      return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al obtener moderador');
+      throw new Error((error as Error).message || 'Error al obtener estudiante');
     }
   }
 
-  // Obtener moderador por username
-  static async getModeratorByUsername(username: string): Promise<Moderator> {
+  // Obtener estudiante por username
+  static async getStudentByUsername(username: string): Promise<Student> {
     try {
-      const response = await apiClient.get(`/moderators/username/${username}`);
-      return response;
+      const response = await apiClient.get(`/students/username/${username}`);
+      return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al obtener moderador');
+      throw new Error((error as Error).message || 'Error al obtener estudiante');
     }
   }
 
-  // Actualizar moderador
-  static async updateModerator(id: string, moderatorData: UpdateModeratorData): Promise<Moderator> {
+  // Actualizar estudiante
+  static async updateStudent(id: string, studentData: UpdateStudentData): Promise<Student> {
     try {
-      const response = await apiClient.put(`/moderators/${id}`, moderatorData);
-      return response;
+      const response = await apiClient.put(`/students/${id}`, studentData);
+      return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al actualizar moderador');
+      throw new Error((error as Error).message || 'Error al actualizar estudiante');
     }
   }
 
   // Cambiar contraseña
-  static async updatePassword(id: string, currentPassword: string, newPassword: string): Promise<Moderator> {
+  static async updatePassword(id: string, currentPassword: string, newPassword: string): Promise<Student> {
     try {
-      const response = await apiClient.put(`/moderators/${id}/password`, {
+      const response = await apiClient.put(`/students/${id}/password`, {
         currentPassword,
         newPassword
       });
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al cambiar contraseña');
     }
   }
 
-  // Buscar moderadores por departamento
-  static async findModeratorsByDepartment(department: string): Promise<Moderator[]> {
+  // Buscar estudiantes por interés
+  static async findStudentsByInterest(interest: string): Promise<Student[]> {
     try {
-      const response = await apiClient.get(`/moderators/department/${encodeURIComponent(department)}`);
-      return response;
+      const response = await apiClient.get(`/students/interests/${encodeURIComponent(interest)}`);
+      return response.data;
     } catch (error) {
-     throw new Error((error as Error).message || 'Error al buscar moderadores por departamento');
+      throw new Error((error as Error).message || 'Error al buscar estudiantes por interés');
     }
   }
 
-  // Buscar moderadores por especialización
-  static async findModeratorsBySpecialization(specialization: string): Promise<Moderator[]> {
+  // Buscar estudiantes por campo de estudio
+  static async findStudentsByFieldOfStudy(field: string): Promise<Student[]> {
     try {
-      const response = await apiClient.get(`/moderators/specialization/${encodeURIComponent(specialization)}`);
-      return response;
+      const response = await apiClient.get(`/students/fields/${encodeURIComponent(field)}`);
+      return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al buscar moderadores por especialización');
+      throw new Error((error as Error).message || 'Error al buscar estudiantes por campo');
     }
   }
 
-  // Buscar moderadores por nivel de acceso mínimo
-  static async findModeratorsByMinimumAccessLevel(level: number): Promise<Moderator[]> {
+  // Buscar estudiantes por grupo de estudio
+  static async findStudentsByStudyGroup(groupId: string): Promise<Student[]> {
     try {
-      const response = await apiClient.get(`/moderators/access-level/${level}`);
-      return response;
+      const response = await apiClient.get(`/students/groups/${groupId}`);
+      return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al buscar moderadores por nivel de acceso');
+      throw new Error((error as Error).message || 'Error al buscar estudiantes por grupo');
     }
   }
 
-  // Analytics - Obtener conexiones más fuertes
-  static async getTopStudentConnections(limit: number = 10): Promise<any[]> {
+  // Buscar estudiantes con grupos en común
+  static async findStudentsWithCommonGroups(studentId: string): Promise<Student[]> {
     try {
-      const response = await apiClient.get(`/moderators/analytics/top-connections?limit=${limit}`);
-      return response;
+      const response = await apiClient.get(`/students/common-groups/${studentId}`);
+      return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al obtener conexiones principales');
+      throw new Error((error as Error).message || 'Error al buscar estudiantes con grupos comunes');
     }
   }
 
-  // Analytics - Obtener camino más corto entre estudiantes
-  static async getShortestPath(startId: string, endId: string): Promise<PathAnalytics> {
+  // Obtener todos los intereses académicos
+  static async getAllAcademicInterests(): Promise<string[]> {
     try {
-      const response = await apiClient.get(`/moderators/analytics/path?startId=${startId}&endId=${endId}`);
-      return response;
+        const response = await apiClient.get('/students/all-interests');
+        return response.data as string[]; // Extraer la data y asegurarse de que es un array
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al obtener camino más corto');
+        throw new Error((error as Error).message || 'Error al obtener intereses académicos');
+    }
+}
+
+  // Obtener todos los campos de estudio
+  static async getAllFieldsOfStudy(): Promise<string[]> {
+    try {
+        const response = await apiClient.get('/students/all-fields');
+        return response.data as string[]; // Extraer la data y asegurarse de que es un array
+    } catch (error) {
+        throw new Error((error as Error).message || 'Error al obtener campos de estudio');
+    }
+}
+
+  // Obtener conexiones de un estudiante
+  static async getStudentConnections(id: string): Promise<any[]> {
+    try {
+      const response = await apiClient.get(`/students/${id}/connections`);
+      return response.data;
+    } catch (error) {
+      throw new Error((error as Error).message || 'Error al obtener conexiones del estudiante');
     }
   }
 
-  // Analytics - Obtener estadísticas de conexiones
-  static async getStudentConnectionsStats(): Promise<any[]> {
+  // Obtener recomendaciones para un estudiante
+  static async getStudentRecommendations(id: string): Promise<Record<string, number>> {
     try {
-      const response = await apiClient.get('/moderators/analytics/connection-stats');
-      return response;
+      const response = await apiClient.get(`/students/${id}/recommendations`);
+      return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al obtener estadísticas de conexiones');
+      throw new Error((error as Error).message || 'Error al obtener recomendaciones');
     }
   }
 
-  // Analytics - Obtener estudiantes más conectados
-  static async getMostConnectedStudents(limit: number = 10): Promise<StudentStats[]> {
+  // Crear conexión entre estudiantes
+  static async createConnection(connectionData: CreateConnectionData): Promise<any> {
     try {
-      const response = await apiClient.get(`/moderators/analytics/most-connected?limit=${limit}`);
-      return response;
+      const response = await apiClient.post('/students/connections', connectionData);
+      return response.data;
     } catch (error) {
-     throw new Error((error as Error).message || 'Error al obtener estudiantes más conectados');
+      throw new Error((error as Error).message || 'Error al crear conexión');
     }
   }
 
-  // Analytics - Detectar comunidades
-  static async detectCommunities(): Promise<Community[][]> {
+  // Actualizar conexión entre estudiantes
+  static async updateConnection(connectionData: UpdateConnectionData): Promise<any> {
     try {
-      const response = await apiClient.get('/moderators/analytics/communities');
-      return response;
+      const response = await apiClient.put('/students/connections', connectionData);
+      return response.data;
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al detectar comunidades');
+      throw new Error((error as Error).message || 'Error al actualizar conexión');
     }
   }
 
-  // Analytics - Generar conexiones automáticas
-  static async generateConnections(type: 'study-groups' | 'content'): Promise<{message: string}> {
+  // Eliminar conexión entre estudiantes
+  static async deleteConnection(studentIdA: string, studentIdB: string): Promise<void> {
     try {
-      const response = await apiClient.post(`/moderators/analytics/generate-connections?type=${type}`);
-      return response;
+      await apiClient.delete('/students/connections', {
+        data: { studentIdA, studentIdB }
+      });
     } catch (error) {
-      throw new Error((error as Error).message || 'Error al generar conexiones');
+      throw new Error((error as Error).message || 'Error al eliminar conexión');
+    }
+  }
+
+  // Encontrar camino más corto entre estudiantes
+  static async findShortestPath(startId: string, endId: string): Promise<any[]> {
+    try {
+      const response = await apiClient.get(`/students/path?startId=${startId}&endId=${endId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error((error as Error).message || 'Error al encontrar camino más corto');
     }
   }
 }
 
-export default ModeratorService;
+export default StudentService;

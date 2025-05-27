@@ -1,6 +1,6 @@
 // services/moderatorService.ts
 import apiClient from '@/lib/api';
-import { User } from './authService';
+import { User } from '@/services/authService'; 
 
 export interface Moderator extends User {
   department: string;
@@ -51,7 +51,7 @@ export class ModeratorService {
   static async getAllModerators(): Promise<Moderator[]> {
     try {
       const response = await apiClient.get('/moderators');
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener moderadores');
     }
@@ -61,9 +61,9 @@ export class ModeratorService {
   static async getModeratorById(id: string): Promise<Moderator> {
     try {
       const response = await apiClient.get(`/moderators/${id}`);
-      return response;
+      return response.data;
     } catch (error) {
-     throw new Error((error as Error).message || 'Error al obtener moderador');
+      throw new Error((error as Error).message || 'Error al obtener moderador');
     }
   }
 
@@ -71,7 +71,7 @@ export class ModeratorService {
   static async getModeratorByUsername(username: string): Promise<Moderator> {
     try {
       const response = await apiClient.get(`/moderators/username/${username}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener moderador');
     }
@@ -81,7 +81,7 @@ export class ModeratorService {
   static async updateModerator(id: string, moderatorData: UpdateModeratorData): Promise<Moderator> {
     try {
       const response = await apiClient.put(`/moderators/${id}`, moderatorData);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al actualizar moderador');
     }
@@ -94,7 +94,7 @@ export class ModeratorService {
         currentPassword,
         newPassword
       });
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al cambiar contraseña');
     }
@@ -104,7 +104,7 @@ export class ModeratorService {
   static async findModeratorsByDepartment(department: string): Promise<Moderator[]> {
     try {
       const response = await apiClient.get(`/moderators/department/${encodeURIComponent(department)}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al buscar moderadores por departamento');
     }
@@ -114,7 +114,7 @@ export class ModeratorService {
   static async findModeratorsBySpecialization(specialization: string): Promise<Moderator[]> {
     try {
       const response = await apiClient.get(`/moderators/specialization/${encodeURIComponent(specialization)}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al buscar moderadores por especialización');
     }
@@ -124,7 +124,7 @@ export class ModeratorService {
   static async findModeratorsByMinimumAccessLevel(level: number): Promise<Moderator[]> {
     try {
       const response = await apiClient.get(`/moderators/access-level/${level}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al buscar moderadores por nivel de acceso');
     }
@@ -134,7 +134,7 @@ export class ModeratorService {
   static async getTopStudentConnections(limit: number = 10): Promise<any[]> {
     try {
       const response = await apiClient.get(`/moderators/analytics/top-connections?limit=${limit}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener conexiones principales');
     }
@@ -144,7 +144,7 @@ export class ModeratorService {
   static async getShortestPath(startId: string, endId: string): Promise<PathAnalytics> {
     try {
       const response = await apiClient.get(`/moderators/analytics/path?startId=${startId}&endId=${endId}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener camino más corto');
     }
@@ -154,7 +154,7 @@ export class ModeratorService {
   static async getStudentConnectionsStats(): Promise<any[]> {
     try {
       const response = await apiClient.get('/moderators/analytics/connection-stats');
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener estadísticas de conexiones');
     }
@@ -164,7 +164,7 @@ export class ModeratorService {
   static async getMostConnectedStudents(limit: number = 10): Promise<StudentStats[]> {
     try {
       const response = await apiClient.get(`/moderators/analytics/most-connected?limit=${limit}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener estudiantes más conectados');
     }
@@ -174,7 +174,7 @@ export class ModeratorService {
   static async detectCommunities(): Promise<Community[][]> {
     try {
       const response = await apiClient.get('/moderators/analytics/communities');
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al detectar comunidades');
     }
@@ -184,7 +184,7 @@ export class ModeratorService {
   static async generateConnections(type: 'study-groups' | 'content'): Promise<{message: string}> {
     try {
       const response = await apiClient.post(`/moderators/analytics/generate-connections?type=${type}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al generar conexiones');
     }

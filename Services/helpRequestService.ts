@@ -1,5 +1,6 @@
 // services/helpRequestService.ts
 import apiClient from '@/lib/api';
+import { AxiosError } from 'axios';
 
 export type HelpRequestPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
@@ -31,7 +32,7 @@ export class HelpRequestService {
   static async getAllHelpRequests(): Promise<HelpRequest[]> {
     try {
       const response = await apiClient.get('/help-requests');
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener solicitudes de ayuda');
     }
@@ -41,7 +42,7 @@ export class HelpRequestService {
   static async getHelpRequestById(id: string): Promise<HelpRequest> {
     try {
       const response = await apiClient.get(`/help-requests/${id}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener solicitud de ayuda');
     }
@@ -51,7 +52,7 @@ export class HelpRequestService {
   static async createHelpRequest(requestData: CreateHelpRequestData): Promise<HelpRequest> {
     try {
       const response = await apiClient.post('/help-requests', requestData);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al crear solicitud de ayuda');
     }
@@ -61,7 +62,7 @@ export class HelpRequestService {
   static async updateHelpRequest(id: string, requestData: CreateHelpRequestData): Promise<HelpRequest> {
     try {
       const response = await apiClient.put(`/help-requests/${id}`, requestData);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al actualizar solicitud de ayuda');
     }
@@ -80,7 +81,7 @@ export class HelpRequestService {
   static async offerHelp(id: string): Promise<HelpRequest> {
     try {
       const response = await apiClient.post(`/help-requests/${id}/offer-help`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al ofrecer ayuda');
     }
@@ -90,7 +91,7 @@ export class HelpRequestService {
   static async resolveHelpRequest(id: string): Promise<HelpRequest> {
     try {
       const response = await apiClient.post(`/help-requests/${id}/resolve`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al resolver solicitud');
     }
@@ -100,7 +101,7 @@ export class HelpRequestService {
   static async getActiveHelpRequests(): Promise<HelpRequest[]> {
     try {
       const response = await apiClient.get('/help-requests/active');
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener solicitudes activas');
     }
@@ -110,7 +111,7 @@ export class HelpRequestService {
   static async getHelpRequestsByTopic(topic: string): Promise<HelpRequest[]> {
     try {
       const response = await apiClient.get(`/help-requests/topic/${encodeURIComponent(topic)}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener solicitudes por tópico');
     }
@@ -120,7 +121,7 @@ export class HelpRequestService {
   static async searchActiveHelpRequestsByKeyword(keyword: string): Promise<HelpRequest[]> {
     try {
       const response = await apiClient.get(`/help-requests/search?keyword=${encodeURIComponent(keyword)}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al buscar solicitudes');
     }
@@ -130,7 +131,7 @@ export class HelpRequestService {
   static async getHelpRequestsCreatedByStudent(studentId: string): Promise<HelpRequest[]> {
     try {
       const response = await apiClient.get(`/help-requests/created-by/${studentId}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener solicitudes del estudiante');
     }
@@ -140,7 +141,7 @@ export class HelpRequestService {
   static async getRecommendedHelpRequestsForStudent(studentId: string): Promise<HelpRequest[]> {
     try {
       const response = await apiClient.get(`/help-requests/recommended-for/${studentId}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error al obtener recomendaciones');
     }
@@ -149,15 +150,15 @@ export class HelpRequestService {
   // Obtener siguiente solicitud de mayor prioridad
   static async getNextHighestPriorityRequest(): Promise<HelpRequest | null> {
     try {
-      const response = await apiClient.get('/help-requests/next-priority');
-      return response;
+        const response = await apiClient.get('/help-requests/next-priority');
+        return response.data;
     } catch (error) {
-      if (error?.status === 204) {
-        return null; // No hay solicitudes
-      }
-      throw new Error((error as Error).message || 'Error al obtener siguiente solicitud');
+        if (error instanceof AxiosError && error.response?.status === 204) {
+            return null; // No hay solicitudes
+        }
+        throw new Error((error as Error).message || 'Error al obtener siguiente solicitud');
     }
-  }
+}
 }
 
 export default HelpRequestService;

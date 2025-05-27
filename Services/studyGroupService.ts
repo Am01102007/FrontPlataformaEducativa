@@ -26,7 +26,7 @@ export class StudyGroupService {
   static async getAllStudyGroups(): Promise<StudyGroup[]> {
     try {
       const response = await apiClient.get('/study-groups');
-      return response;
+      return response.data.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al obtener grupos de estudio');
     }
@@ -36,7 +36,7 @@ export class StudyGroupService {
   static async getStudyGroupById(id: string): Promise<StudyGroup> {
     try {
       const response = await apiClient.get(`/study-groups/${id}`);
-      return response;
+      return response.data.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al obtener grupo de estudio');
     }
@@ -46,7 +46,7 @@ export class StudyGroupService {
   static async createStudyGroup(groupData: CreateStudyGroupData): Promise<StudyGroup> {
     try {
       const response = await apiClient.post('/study-groups', groupData);
-      return response;
+      return response.data.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al crear grupo de estudio');
     }
@@ -56,7 +56,7 @@ export class StudyGroupService {
   static async updateStudyGroup(id: string, groupData: CreateStudyGroupData): Promise<StudyGroup> {
     try {
       const response = await apiClient.put(`/study-groups/${id}`, groupData);
-      return response;
+      return response.data.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al actualizar grupo de estudio');
     }
@@ -75,7 +75,7 @@ export class StudyGroupService {
   static async joinStudyGroup(id: string): Promise<StudyGroup> {
     try {
       const response = await apiClient.post(`/study-groups/${id}/join`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al unirse al grupo');
     }
@@ -85,7 +85,7 @@ export class StudyGroupService {
   static async leaveStudyGroup(id: string): Promise<StudyGroup> {
     try {
       const response = await apiClient.post(`/study-groups/${id}/leave`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al abandonar el grupo');
     }
@@ -95,7 +95,7 @@ export class StudyGroupService {
   static async findStudyGroupsByTopic(topic: string): Promise<StudyGroup[]> {
     try {
       const response = await apiClient.get(`/study-groups/topic/${encodeURIComponent(topic)}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al buscar grupos por tópico');
     }
@@ -105,7 +105,7 @@ export class StudyGroupService {
   static async findStudyGroupsByStudentId(studentId: string): Promise<StudyGroup[]> {
     try {
       const response = await apiClient.get(`/study-groups/student/${studentId}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al obtener grupos del estudiante');
     }
@@ -115,7 +115,7 @@ export class StudyGroupService {
   static async findAvailableStudyGroups(): Promise<StudyGroup[]> {
     try {
       const response = await apiClient.get('/study-groups/available');
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al obtener grupos disponibles');
     }
@@ -125,7 +125,7 @@ export class StudyGroupService {
   static async recommendStudyGroupsByInterests(studentId: string): Promise<StudyGroup[]> {
     try {
       const response = await apiClient.get(`/study-groups/recommendations/${studentId}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al obtener recomendaciones de grupos');
     }
@@ -135,7 +135,7 @@ export class StudyGroupService {
   static async findActiveGroupsWithMinMembers(minMembers: number = 2): Promise<StudyGroup[]> {
     try {
       const response = await apiClient.get(`/study-groups/active?minMembers=${minMembers}`);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al obtener grupos activos');
     }
@@ -146,7 +146,7 @@ export class StudyGroupService {
     try {
       const params = maxCapacity ? `?maxCapacity=${maxCapacity}` : '';
       const response = await apiClient.post(`/study-groups/auto-generate${params}`, topics);
-      return response;
+      return response.data;
     } catch (error) {
       throw new Error((error as Error).message ||'Error al crear grupo automáticamente');
     }

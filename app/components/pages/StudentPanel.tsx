@@ -3,9 +3,10 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Upload, FileText, ImageIcon, AlertCircle, Users, Star } from "lucide-react"
-import ContentService, { CreateContentData, ContentType } from "@/services/contentService"
-import HelpRequestService, { CreateHelpRequestData, HelpRequestPriority } from "@/services/helpRequestService"
-import StudentService from "@/services/studentService"
+import ContentService, { CreateContentData, ContentType } from "@/services/contentService";
+import HelpRequestService, { CreateHelpRequestData, HelpRequestPriority } from "@/services/helpRequestService";
+import StudentService from "@/services/studentService";
+
 
 interface StudentPanelProps {
   user: any
@@ -55,8 +56,8 @@ export function StudentPanel({ user }: StudentPanelProps) {
         // Convertir el Map<UUID, Integer> a array de estudiantes recomendados
         const peers = Object.entries(recommendations).slice(0, 3).map(([id, score]) => ({
           id,
-          name: `Usuario ${id.slice(0, 8)}`, // Temporal
-          interests: ["React", "Node.js"], // Temporal
+          name: `Usuario ${id.slice(0, 8)}`, // Temporal - deberías obtener el nombre real
+          interests: ["React", "Node.js"], // Temporal - deberías obtener los intereses reales
           avatar: id.slice(0, 2).toUpperCase(),
           score
         }))
@@ -64,6 +65,8 @@ export function StudentPanel({ user }: StudentPanelProps) {
       }
     } catch (error) {
       console.error('Error loading suggestions:', error)
+      // En caso de error, establecer un array vacío para evitar errores en el render
+      setSuggestedPeers([])
     }
   }
 
@@ -76,6 +79,7 @@ export function StudentPanel({ user }: StudentPanelProps) {
       const tagsArray = typeof contentForm.tags === 'string' 
         ? contentForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
         : contentForm.tags
+        
 
       const contentData: CreateContentData = {
         ...contentForm,
@@ -147,6 +151,17 @@ export function StudentPanel({ user }: StudentPanelProps) {
         return "bg-gray-100 text-gray-800"
     }
   }
+
+ const handleConnectWithPeer = async (peerId: string) => {
+    try {
+        const connectionData = { peerId }; // Construimos el objeto correcto
+        await StudentService.createConnection(connectionData); // Usamos el método correcto
+        alert("Conexión enviada exitosamente!");
+    } catch (error) {
+        alert("Error al conectar con el usuario");
+    }
+};
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -367,7 +382,10 @@ export function StudentPanel({ user }: StudentPanelProps) {
                     </span>
                   ))}
                 </div>
-                <button className="w-full bg-[#4dd0e1] hover:bg-[#00acc1] text-white text-sm py-2 px-3 rounded transition-colors">
+                <button 
+                  onClick={() => handleConnectWithPeer(peer.id)}
+                  className="w-full bg-[#4dd0e1] hover:bg-[#00acc1] text-white text-sm py-2 px-3 rounded transition-colors"
+                >
                   Conectar
                 </button>
               </div>

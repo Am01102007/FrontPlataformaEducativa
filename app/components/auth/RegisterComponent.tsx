@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { Eye, EyeOff, Mail, Lock, User, Loader2, CheckCircle } from "lucide-react"
-import AuthService, { RegisterData } from "@/Services/authService"
+import AuthService, { RegisterData } from "@/services/authService"
 
 interface RegisterComponentProps {
   onSwitchToLogin: () => void

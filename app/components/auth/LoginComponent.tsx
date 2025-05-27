@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
-import AuthService, { LoginCredentials } from "@/Services/authService"
+import AuthService, { LoginCredentials } from "@/services/authService"
 
 interface LoginComponentProps {
   onLogin: (userData: any) => void
