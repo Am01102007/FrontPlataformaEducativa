@@ -58,7 +58,7 @@ export class AuthService {
   // Login
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post('/auth/login', credentials);
+      const response = await apiClient.post('/api/v1/auth/login', credentials);
       
       // Guardar token y datos del usuario
       if (response.data.token) {
@@ -78,24 +78,13 @@ export class AuthService {
   // Registro
   static async register(userData: RegisterData): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post('/auth/register', userData);
+      const response = await apiClient.post('/api/v1/auth/register', userData);
       return response.data;
     } catch (error) {
       throw new Error((error as Error).message || 'Error en el registro');
     }
   }
 
-  // Cerrar sesión
-  static async logout(): Promise<void> {
-    try {
-      await apiClient.post('/auth/logout');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    } finally {
-      localStorage.removeItem(this.TOKEN_KEY);
-      localStorage.removeItem(this.USER_KEY);
-    }
-  }
 
   // Verificar si está autenticado
   static isAuthenticated(): boolean {

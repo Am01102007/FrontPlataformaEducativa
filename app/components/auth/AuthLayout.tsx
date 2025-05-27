@@ -60,13 +60,16 @@ export function AuthLayout({ onLogin }: AuthLayoutProps) {
           {currentView === "login" ? (
             <LoginComponent onLogin={onLogin} onSwitchToRegister={() => setCurrentView("register")} />
           ) : (
-            <RegisterComponent onSwitchToLogin={() => setCurrentView("login")} />
+            <RegisterComponent 
+              onSwitchToLogin={() => setCurrentView("login")} 
+              onLogin={onLogin} 
+            />
           )}
         </div>
 
         <div className="text-center mt-8 text-white/70 text-sm">
           <p>© 2024 Red Social de Aprendizaje Colaborativo</p>
-          <p>Desarrollado con Angular + Spring Boot</p>
+          <p>Desarrollado con React + Spring Boot</p>
         </div>
       </div>
     </div>

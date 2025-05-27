@@ -7,9 +7,10 @@ import AuthService, { RegisterData } from "@/services/authService"
 
 interface RegisterComponentProps {
   onSwitchToLogin: () => void
+  onLogin?: (userData: any) => void // Agregar esta prop opcional
 }
 
-export function RegisterComponent({ onSwitchToLogin }: RegisterComponentProps) {
+export function RegisterComponent({ onSwitchToLogin, onLogin }: RegisterComponentProps) {
   const [formData, setFormData] = useState<RegisterData>({
     username: "",
     fullName: "",
@@ -40,12 +41,33 @@ export function RegisterComponent({ onSwitchToLogin }: RegisterComponentProps) {
     }
 
     try {
-      await AuthService.register(formData)
-      setSuccessMessage("¡Registro exitoso! Redirigiendo al inicio de sesión...")
+      const response = await AuthService.register(formData)
       
-      setTimeout(() => {
-        onSwitchToLogin()
-      }, 2000)
+      // Si el registro es exitoso y devuelve un token, iniciar sesión automáticamente
+      if (response.token && onLogin) {
+        // Crear objeto de usuario compatible
+        const userData = {
+          id: "temp-id", // Se obtendrá después
+          fullName: formData.fullName,
+          email: formData.email,
+          role: response.role === 'STUDENT' ? 'estudiante' : 'moderador',
+          username: response.username
+        }
+        
+        setSuccessMessage("¡Registro exitoso! Iniciando sesión...")
+        
+        // Esperar un momento antes de iniciar sesión
+        setTimeout(() => {
+          onLogin(userData)
+        }, 1500)
+      } else {
+        // Si no hay función onLogin, mostrar mensaje y cambiar a login
+        setSuccessMessage("¡Registro exitoso! Redirigiendo al inicio de sesión...")
+        
+        setTimeout(() => {
+          onSwitchToLogin()
+        }, 2000)
+      }
     } catch (error) {
       setErrors({ 
         general: error instanceof Error ? error.message : 'Error en el registro' 
