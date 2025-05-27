@@ -7,7 +7,6 @@ import ContentService, { CreateContentData, ContentType } from "@/services/conte
 import HelpRequestService, { CreateHelpRequestData, HelpRequestPriority } from "@/services/helpRequestService";
 import StudentService from "@/services/studentService";
 
-
 interface StudentPanelProps {
   user: any
 }
@@ -20,6 +19,9 @@ export function StudentPanel({ user }: StudentPanelProps) {
     description: "",
     tags: []
   })
+
+  // Estado separado para el input de tags como string
+  const [tagsInput, setTagsInput] = useState<string>("")
 
   const [helpForm, setHelpForm] = useState<CreateHelpRequestData>({
     title: "",
@@ -34,38 +36,39 @@ export function StudentPanel({ user }: StudentPanelProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    loadMyContent()
-    loadSuggestedPeers()
+    if (user?.id) {
+      loadMyContent()
+      loadSuggestedPeers()
+    }
   }, [user])
 
   const loadMyContent = async () => {
     try {
-      if (user?.id) {
-        const response = await ContentService.getContentsByAuthor(user.id, 0, 10)
-        setMyContent(response.content)
-      }
+      if (!user?.id) return;
+      const response = await ContentService.getContentsByAuthor(user.id, 0, 10)
+      setMyContent(response.content || [])
     } catch (error) {
       console.error('Error loading content:', error)
+      setMyContent([])
     }
   }
 
   const loadSuggestedPeers = async () => {
     try {
-      if (user?.id) {
-        const recommendations = await StudentService.getStudentRecommendations(user.id)
-        // Convertir el Map<UUID, Integer> a array de estudiantes recomendados
-        const peers = Object.entries(recommendations).slice(0, 3).map(([id, score]) => ({
-          id,
-          name: `Usuario ${id.slice(0, 8)}`, // Temporal - deberías obtener el nombre real
-          interests: ["React", "Node.js"], // Temporal - deberías obtener los intereses reales
-          avatar: id.slice(0, 2).toUpperCase(),
-          score
-        }))
-        setSuggestedPeers(peers)
-      }
+      if (!user?.id) return;
+      const recommendations = await StudentService.getStudentRecommendations(user.id)
+      
+      // Convertir el Map<UUID, Integer> a array de estudiantes recomendados
+      const peers = Object.entries(recommendations || {}).slice(0, 3).map(([id, score]) => ({
+        id,
+        name: `Estudiante ${id.slice(0, 8)}`, // Temporal - deberías obtener el nombre real
+        interests: ["React", "Node.js"], // Temporal - deberías obtener los intereses reales
+        avatar: id.slice(0, 2).toUpperCase(),
+        score
+      }))
+      setSuggestedPeers(peers)
     } catch (error) {
       console.error('Error loading suggestions:', error)
-      // En caso de error, establecer un array vacío para evitar errores en el render
       setSuggestedPeers([])
     }
   }
@@ -76,10 +79,19 @@ export function StudentPanel({ user }: StudentPanelProps) {
     setErrors({})
 
     try {
-      const tagsArray = typeof contentForm.tags === 'string' 
-        ? contentForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
-        : contentForm.tags
-        
+      // Validación de campos requeridos
+      if (!contentForm.title.trim()) {
+        throw new Error('El título es requerido')
+      }
+      if (!contentForm.description.trim()) {
+        throw new Error('La descripción es requerida')
+      }
+
+      // Procesar etiquetas desde el input de string
+      const tagsArray = tagsInput
+        .split(',')
+        .map((tag: string) => tag.trim())
+        .filter((tag: string) => tag.length > 0)
 
       const contentData: CreateContentData = {
         ...contentForm,
@@ -96,12 +108,14 @@ export function StudentPanel({ user }: StudentPanelProps) {
         description: "",
         tags: []
       })
+      setTagsInput("") // Resetear también el input de tags
       
       // Recargar contenido
       await loadMyContent()
       alert("Contenido publicado exitosamente!")
     } catch (error) {
-      setErrors({ content: error instanceof Error ? error.message : 'Error al publicar contenido' })
+      const errorMessage = error instanceof Error ? error.message : 'Error al publicar contenido'
+      setErrors({ content: errorMessage })
     } finally {
       setIsLoading(false)
     }
@@ -113,6 +127,17 @@ export function StudentPanel({ user }: StudentPanelProps) {
     setErrors({})
 
     try {
+      // Validación de campos requeridos
+      if (!helpForm.title.trim()) {
+        throw new Error('El título es requerido')
+      }
+      if (!helpForm.topic.trim()) {
+        throw new Error('El tema es requerido')
+      }
+      if (!helpForm.description.trim()) {
+        throw new Error('La descripción es requerida')
+      }
+
       await HelpRequestService.createHelpRequest(helpForm)
       
       // Resetear formulario
@@ -125,16 +150,15 @@ export function StudentPanel({ user }: StudentPanelProps) {
       
       alert("Solicitud de ayuda enviada exitosamente!")
     } catch (error) {
-      setErrors({ help: error instanceof Error ? error.message : 'Error al enviar solicitud' })
+      const errorMessage = error instanceof Error ? error.message : 'Error al enviar solicitud'
+      setErrors({ help: errorMessage })
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const tagsString = e.target.value
-    const tagsArray = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag)
-    setContentForm({ ...contentForm, tags: tagsArray })
+    setTagsInput(e.target.value)
   }
 
   const getPriorityColor = (priority: HelpRequestPriority) => {
@@ -152,16 +176,26 @@ export function StudentPanel({ user }: StudentPanelProps) {
     }
   }
 
- const handleConnectWithPeer = async (peerId: string) => {
+  const handleConnectWithPeer = async (peerId: string) => {
     try {
-        const connectionData = { peerId }; // Construimos el objeto correcto
-        await StudentService.createConnection(connectionData); // Usamos el método correcto
-        alert("Conexión enviada exitosamente!");
-    } catch (error) {
-        alert("Error al conectar con el usuario");
-    }
-};
+      if (!user?.id) {
+        alert("Error: Usuario no identificado")
+        return
+      }
 
+      const connectionData = { 
+        studentIdA: user.id,
+        studentIdB: peerId,
+        commonInterests: [] // Podrías calcular esto basado en intereses comunes
+      }
+      
+      await StudentService.createConnection(connectionData)
+      alert("Conexión enviada exitosamente!")
+    } catch (error) {
+      console.error('Error connecting with peer:', error)
+      alert("Error al conectar con el usuario")
+    }
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -218,11 +252,23 @@ export function StudentPanel({ user }: StudentPanelProps) {
               <label className="block text-sm font-medium text-gray-700 mb-1">Etiquetas (separadas por comas)</label>
               <input
                 type="text"
-                value={Array.isArray(contentForm.tags) ? contentForm.tags.join(', ') : contentForm.tags}
+                value={tagsInput}
                 onChange={handleTagsChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4dd0e1] focus:border-[#4dd0e1]"
                 placeholder="javascript, react, tutorial"
               />
+              {tagsInput && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {tagsInput.split(',').map((tag: string, index: number) => {
+                    const trimmedTag = tag.trim()
+                    return trimmedTag ? (
+                      <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                        {trimmedTag}
+                      </span>
+                    ) : null
+                  })}
+                </div>
+              )}
             </div>
 
             <div>
